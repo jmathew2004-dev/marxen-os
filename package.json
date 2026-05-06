@@ -1,0 +1,15 @@
+{
+  "name": "marxen-erp",
+  "version": "1.0.0",
+  "description": "ERP Attendance & Work Management System",
+  "private": true,
+  "scripts": {
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "start": "npm --prefix backend start",
+    "dev-backend": "npm --prefix backend run dev",
+    "dev-frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "migrate": "npm --prefix backend run migrate",
+    "seed": "npm --prefix backend run seed"
+  }
+}

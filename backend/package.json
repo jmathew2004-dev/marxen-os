@@ -1,0 +1,35 @@
+{
+  "name": "marxen-backend",
+  "version": "1.0.0",
+  "description": "ERP Attendance & Work Management System - Backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "migrate": "node -e \"require('./src/config/database').migrate()\"",
+    "seed": "node seeds/seed.js"
+  },
+  "keywords": ["erp", "attendance", "ai", "voice"],
+  "author": "Marxen Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.10.0",
+    "uuid": "^9.0.0",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "joi": "^17.10.0",
+    "axios": "^1.4.0",
+    "anthropic": "^0.7.0",
+    "i18next": "^23.6.0",
+    "i18next-fs-backend": "^2.1.5",
+    "multer": "^1.4.5-lts.1",
+    "express-async-errors": "^3.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
