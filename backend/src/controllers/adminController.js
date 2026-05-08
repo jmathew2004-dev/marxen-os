@@ -1,5 +1,11 @@
 const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcrypt');
 const db = require('../config/database');
+const { adminAttendanceCsv, adminWorkCsv } = require('../services/reporting');
+
+const WORKER_ROLES = ['employee', 'manager'];
+
+const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
 
 const setupCompany = async (req, res, next) => {
   try {
@@ -51,7 +57,8 @@ const updateCompany = async (req, res, next) => {
 
 const addTeamMember = async (req, res, next) => {
   try {
-    const { email, first_name, last_name, role, department, designation } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { first_name, last_name, role, department, designation } = req.body;
     const companyId = req.user.company_id;
 
     if (!email) {
@@ -60,7 +67,6 @@ const addTeamMember = async (req, res, next) => {
 
     // Generate a temporary password (should be changed by user on first login)
     const tempPassword = uuidv4().substring(0, 12);
-    const bcrypt = require('bcrypt');
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     const userId = uuidv4();
@@ -80,6 +86,131 @@ const addTeamMember = async (req, res, next) => {
     if (error.code === '23505') {
       return res.status(409).json({ error: 'Email already exists' });
     }
+    next(error);
+  }
+};
+
+const addWorkerWhitelist = async (req, res, next) => {
+  try {
+    const email = normalizeEmail(req.body.email);
+    const { first_name, last_name, role, department, designation } = req.body;
+    const companyId = req.user.company_id;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email required' });
+    }
+
+    if (role && !WORKER_ROLES.includes(role)) {
+      return res.status(400).json({ error: 'Worker whitelist role must be employee or manager' });
+    }
+
+    const existingUser = await db.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email]);
+    if (existingUser.rows.length) {
+      return res.status(409).json({ error: 'A user with this email already exists' });
+    }
+
+    const existingInvite = await db.query(
+      'SELECT id, company_id FROM worker_email_whitelist WHERE LOWER(email) = LOWER($1)',
+      [email]
+    );
+
+    if (existingInvite.rows.length && existingInvite.rows[0].company_id !== companyId) {
+      return res.status(409).json({ error: 'This email is already whitelisted by another company' });
+    }
+
+    let result;
+    if (existingInvite.rows.length) {
+      result = await db.query(
+        `UPDATE worker_email_whitelist
+         SET first_name = $1,
+             last_name = $2,
+             role = $3,
+             department = $4,
+             designation = $5,
+             invited_by = $6,
+             used_at = NULL,
+             updated_at = NOW()
+         WHERE id = $7 AND company_id = $8
+         RETURNING *`,
+        [
+          first_name || null,
+          last_name || null,
+          role || 'employee',
+          department || null,
+          designation || null,
+          req.user.id,
+          existingInvite.rows[0].id,
+          companyId
+        ]
+      );
+    } else {
+      result = await db.query(
+        `INSERT INTO worker_email_whitelist (
+           id, company_id, email, first_name, last_name, role,
+           department, designation, invited_by
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         RETURNING *`,
+        [
+          uuidv4(),
+          companyId,
+          email,
+          first_name || null,
+          last_name || null,
+          role || 'employee',
+          department || null,
+          designation || null,
+          req.user.id
+        ]
+      );
+    }
+
+    res.status(201).json({ message: 'Worker email whitelisted', whitelist_entry: result.rows[0] });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'Email already whitelisted' });
+    }
+    next(error);
+  }
+};
+
+const listWorkerWhitelist = async (req, res, next) => {
+  try {
+    const companyId = req.user.company_id;
+
+    const result = await db.query(
+      `SELECT id, email, first_name, last_name, role, department, designation,
+              used_at, created_at, updated_at
+       FROM worker_email_whitelist
+       WHERE company_id = $1
+       ORDER BY created_at DESC`,
+      [companyId]
+    );
+
+    res.json({ whitelist: result.rows });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const removeWorkerWhitelist = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const companyId = req.user.company_id;
+
+    const result = await db.query(
+      `DELETE FROM worker_email_whitelist
+       WHERE id = $1 AND company_id = $2 AND used_at IS NULL
+       RETURNING id`,
+      [id, companyId]
+    );
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Whitelist entry not found or already used' });
+    }
+
+    res.json({ message: 'Whitelist entry removed' });
+  } catch (error) {
     next(error);
   }
 };
@@ -152,11 +283,38 @@ const removeTeamMember = async (req, res, next) => {
   }
 };
 
+const downloadAttendanceReport = async (req, res, next) => {
+  try {
+    const csv = await adminAttendanceCsv(req.user.company_id);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="marxen-attendance-report.csv"');
+    res.send(csv);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const downloadWorkReport = async (req, res, next) => {
+  try {
+    const csv = await adminWorkCsv(req.user.company_id);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="marxen-work-report.csv"');
+    res.send(csv);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   setupCompany,
   updateCompany,
   addTeamMember,
+  addWorkerWhitelist,
+  listWorkerWhitelist,
+  removeWorkerWhitelist,
   listTeamMembers,
   updateTeamMember,
-  removeTeamMember
+  removeTeamMember,
+  downloadAttendanceReport,
+  downloadWorkReport
 };

@@ -1,13 +1,18 @@
 :root {
-  --primary: #2563eb;
-  --primary-dark: #1e40af;
-  --secondary: #10b981;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --light: #f9fafb;
-  --text: #1f2937;
-  --border: #e5e7eb;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --primary: #146c72;
+  --primary-dark: #0d4d52;
+  --secondary: #a05d20;
+  --accent: #6947a8;
+  --danger: #c2413a;
+  --warning: #c27a1a;
+  --success: #257a5a;
+  --surface: #ffffff;
+  --surface-strong: #f9fcfb;
+  --light: #eef6f4;
+  --text: #15272d;
+  --muted: #62777e;
+  --border: #d7e6e3;
+  --shadow: 0 20px 55px rgba(18, 45, 50, 0.1);
 }
 
 * {
@@ -18,9 +23,27 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: var(--light);
+  background-color: #f3f7f6;
+  background-image:
+    linear-gradient(120deg, rgba(20, 108, 114, 0.08) 0 1px, transparent 1px 100%),
+    linear-gradient(60deg, rgba(160, 93, 32, 0.06) 0 1px, transparent 1px 100%),
+    linear-gradient(180deg, #fcfdfc 0%, #edf5f3 48%, #f5f2ec 100%);
+  background-size: 180px 180px, 220px 220px, auto;
+  background-attachment: fixed;
   color: var(--text);
   line-height: 1.6;
+}
+
+body::before {
+  content: '';
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(135deg, transparent 0 42%, rgba(20, 108, 114, 0.055) 42% 43%, transparent 43% 100%),
+    linear-gradient(45deg, transparent 0 69%, rgba(105, 71, 168, 0.045) 69% 70%, transparent 70% 100%);
+  background-size: 280px 280px, 340px 340px;
 }
 
 #root {
@@ -31,7 +54,7 @@ button {
   cursor: pointer;
   padding: 0.5rem 1rem;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 0.35rem;
   font-size: 1rem;
   transition: all 0.3s ease;
 }
@@ -58,9 +81,10 @@ button.secondary:hover {
 input, textarea, select {
   padding: 0.75rem;
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: 0.35rem;
   font-size: 1rem;
   font-family: inherit;
+  background: white;
 }
 
 input:focus, textarea:focus, select:focus {
@@ -79,7 +103,7 @@ a:hover {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -126,7 +150,7 @@ a:hover {
 .font-bold { font-weight: bold; }
 
 .error { color: var(--danger); }
-.success { color: var(--secondary); }
+.success { color: var(--success); }
 .warning { color: var(--warning); }
 
 .loading {

@@ -1,6 +1,5 @@
 import React, { useContext } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import { AuthContext, AuthProvider } from './context/AuthContext.jsx'
 import Login from './components/Auth/Login'
 import EmployeeDashboard from './components/Dashboard/EmployeeDashboard'
@@ -9,7 +8,7 @@ import Navigation from './components/Common/Navigation'
 
 const AppContent = () => {
   const { isAuthenticated, user } = useContext(AuthContext)
-  const { t } = useTranslation()
+  const isAdminUser = ['owner', 'admin'].includes(user?.role)
 
   if (!isAuthenticated) {
     return <Login />
@@ -22,10 +21,10 @@ const AppContent = () => {
         <Routes>
           <Route
             path="/"
-            element={user?.role === 'admin' ? <AdminDashboard /> : <EmployeeDashboard />}
+            element={isAdminUser ? <AdminDashboard /> : <EmployeeDashboard />}
           />
           <Route path="/dashboard" element={<EmployeeDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin" element={isAdminUser ? <AdminDashboard /> : <Navigate to="/" />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>

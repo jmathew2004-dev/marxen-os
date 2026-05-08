@@ -5,15 +5,24 @@ import { AuthContext } from '../../context/AuthContext'
 import '../styles/auth.css'
 
 const Login = () => {
+  const [accountType, setAccountType] = useState('worker')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [isRegister, setIsRegister] = useState(false)
-  const [formData, setFormData] = useState({ first_name: '', last_name: '', company_id: '' })
+  const [formData, setFormData] = useState({ first_name: '', last_name: '', company_name: '' })
 
   const { t } = useTranslation()
   const { dispatch } = useContext(AuthContext)
+
+  const isWorker = accountType === 'worker'
+
+  const changeAccountType = (type) => {
+    setAccountType(type)
+    setIsRegister(false)
+    setError('')
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -21,7 +30,8 @@ const Login = () => {
     setError('')
 
     try {
-      const response = await api.post('/auth/login', { email, password })
+      const endpoint = isWorker ? '/auth/worker/login' : '/auth/admin/login'
+      const response = await api.post(endpoint, { email, password })
       dispatch({
         type: 'LOGIN_SUCCESS',
         payload: response.data
@@ -39,12 +49,13 @@ const Login = () => {
     setError('')
 
     try {
-      const response = await api.post('/auth/register', {
+      const endpoint = isWorker ? '/auth/worker/register' : '/auth/owner/register'
+      const response = await api.post(endpoint, {
         email,
         password,
         first_name: formData.first_name,
         last_name: formData.last_name,
-        company_id: formData.company_id
+        company_name: formData.company_name
       })
       dispatch({
         type: 'LOGIN_SUCCESS',
@@ -61,6 +72,25 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-card card">
         <h1>{t('app_title')}</h1>
+        <div className="auth-mode-switch" role="tablist" aria-label="Account type">
+          <button
+            type="button"
+            className={isWorker ? 'mode active' : 'mode'}
+            onClick={() => changeAccountType('worker')}
+          >
+            {t('worker_login')}
+          </button>
+          <button
+            type="button"
+            className={!isWorker ? 'mode active' : 'mode'}
+            onClick={() => changeAccountType('admin')}
+          >
+            {t('admin_owner_login')}
+          </button>
+        </div>
+        <p className="auth-note">
+          {isWorker ? t('worker_auth_note') : t('admin_auth_note')}
+        </p>
         {error && <div className="error mt-2">{error}</div>}
 
         {!isRegister ? (
@@ -111,12 +141,15 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <input
-              type="text"
-              placeholder={t('company_name')}
-              value={formData.company_id}
-              onChange={(e) => setFormData({ ...formData, company_id: e.target.value })}
-            />
+            {!isWorker && (
+              <input
+                type="text"
+                placeholder={t('company_name')}
+                value={formData.company_name}
+                onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                required
+              />
+            )}
             <button type="submit" className="primary" disabled={loading}>
               {loading ? t('loading') : t('register')}
             </button>
@@ -127,7 +160,7 @@ const Login = () => {
           className="secondary mt-2"
           onClick={() => setIsRegister(!isRegister)}
         >
-          {isRegister ? t('login') : t('register')}
+          {isRegister ? t('back_to_login') : (isWorker ? t('worker_register') : t('owner_register'))}
         </button>
       </div>
     </div>

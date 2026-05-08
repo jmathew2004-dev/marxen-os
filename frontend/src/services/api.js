@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  timeout: 12000,
   headers: {
     'Content-Type': 'application/json',
   }
@@ -22,7 +23,15 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
+      localStorage.removeItem('user')
       window.location.href = '/login'
+    }
+    if (error.code === 'ECONNABORTED') {
+      error.response = {
+        data: {
+          error: 'The server took too long to respond. Please try again.'
+        }
+      }
     }
     return Promise.reject(error)
   }

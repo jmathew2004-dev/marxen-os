@@ -29,8 +29,28 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_users_company_id ON users(company_id);
-CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_company_id ON users(company_id);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- Worker email whitelist / invite table
+CREATE TABLE IF NOT EXISTS worker_email_whitelist (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL,
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
+  role VARCHAR(50) DEFAULT 'employee',
+  department VARCHAR(100),
+  designation VARCHAR(100),
+  invited_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  used_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_worker_whitelist_company_id ON worker_email_whitelist(company_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_worker_whitelist_company_email ON worker_email_whitelist(company_id, LOWER(email));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_worker_whitelist_email ON worker_email_whitelist(LOWER(email));
 
 -- Work categories table
 CREATE TABLE IF NOT EXISTS work_categories (
@@ -44,7 +64,7 @@ CREATE TABLE IF NOT EXISTS work_categories (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_work_categories_company_id ON work_categories(company_id);
+CREATE INDEX IF NOT EXISTS idx_work_categories_company_id ON work_categories(company_id);
 
 -- Work items table
 CREATE TABLE IF NOT EXISTS work_items (
@@ -63,9 +83,9 @@ CREATE TABLE IF NOT EXISTS work_items (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_work_items_company_id ON work_items(company_id);
-CREATE INDEX idx_work_items_user_id ON work_items(user_id);
-CREATE INDEX idx_work_items_category_id ON work_items(category_id);
+CREATE INDEX IF NOT EXISTS idx_work_items_company_id ON work_items(company_id);
+CREATE INDEX IF NOT EXISTS idx_work_items_user_id ON work_items(user_id);
+CREATE INDEX IF NOT EXISTS idx_work_items_category_id ON work_items(category_id);
 
 -- Attendance records table
 CREATE TABLE IF NOT EXISTS attendance_records (
@@ -83,9 +103,9 @@ CREATE TABLE IF NOT EXISTS attendance_records (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_attendance_user_id ON attendance_records(user_id);
-CREATE INDEX idx_attendance_company_id ON attendance_records(company_id);
-CREATE INDEX idx_attendance_check_in ON attendance_records(check_in_time);
+CREATE INDEX IF NOT EXISTS idx_attendance_user_id ON attendance_records(user_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_company_id ON attendance_records(company_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_check_in ON attendance_records(check_in_time);
 
 -- AI Mentor conversations table
 CREATE TABLE IF NOT EXISTS ai_mentor_conversations (
@@ -98,8 +118,8 @@ CREATE TABLE IF NOT EXISTS ai_mentor_conversations (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_ai_conversations_user_id ON ai_mentor_conversations(user_id);
-CREATE INDEX idx_ai_conversations_company_id ON ai_mentor_conversations(company_id);
+CREATE INDEX IF NOT EXISTS idx_ai_conversations_user_id ON ai_mentor_conversations(user_id);
+CREATE INDEX IF NOT EXISTS idx_ai_conversations_company_id ON ai_mentor_conversations(company_id);
 
 -- Audit logs table
 CREATE TABLE IF NOT EXISTS audit_logs (
@@ -115,6 +135,41 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
-CREATE INDEX idx_audit_logs_company_id ON audit_logs(company_id);
-CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_company_id ON audit_logs(company_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
+
+-- Notifications table for in-app worker/admin alerts
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type VARCHAR(100) NOT NULL,
+  severity VARCHAR(30) DEFAULT 'info',
+  title VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  read_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_company_id ON notifications(company_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_read_at ON notifications(read_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
+
+-- Email outbox foundation for attendance alerts
+CREATE TABLE IF NOT EXISTS email_outbox (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+  notification_id UUID REFERENCES notifications(id) ON DELETE SET NULL,
+  recipient_email VARCHAR(255) NOT NULL,
+  subject VARCHAR(255) NOT NULL,
+  body TEXT NOT NULL,
+  status VARCHAR(30) DEFAULT 'queued',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  sent_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_outbox_company_id ON email_outbox(company_id);
+CREATE INDEX IF NOT EXISTS idx_email_outbox_status ON email_outbox(status);

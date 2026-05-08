@@ -32,14 +32,14 @@ const WorkLogger = ({ onWorkAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.title || !formData.time_spent_minutes) {
-      setMessage('❌ ' + t('error') + ': Please fill required fields')
+      setMessage(t('error') + ': Please fill required fields')
       return
     }
 
     setLoading(true)
     try {
       await api.post('/work/log-work', formData)
-      setMessage('✅ Work logged successfully')
+      setMessage('Flow logged successfully')
       setFormData({
         title: '',
         description: '',
@@ -53,14 +53,14 @@ const WorkLogger = ({ onWorkAdded }) => {
         setMessage('')
       }, 1000)
     } catch (error) {
-      setMessage('❌ ' + (error.response?.data?.error || t('error')))
+      setMessage(error.response?.data?.error || t('error'))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form className="card" onSubmit={handleSubmit}>
+    <form className="panel" onSubmit={handleSubmit}>
       <h2>{t('add_work')}</h2>
       {message && <div className="message">{message}</div>}
 
@@ -118,7 +118,7 @@ const WorkLogger = ({ onWorkAdded }) => {
       </div>
 
       <button type="submit" className="primary mt-2" disabled={loading}>
-        {loading ? t('loading') : 'Log Work'}
+        {loading ? t('loading') : 'Log Flow'}
       </button>
     </form>
   )

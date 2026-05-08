@@ -7,6 +7,22 @@ const anthropic = new Anthropic({
   apiKey: config.claude.apiKey
 });
 
+const fallbackMentorReply = ({ message, workContext, attendanceSummary }) => {
+  const attendanceLine = attendanceSummary
+    ? `Your current attendance is ${attendanceSummary.attendance_percentage}%, with ${attendanceSummary.present_days}/${attendanceSummary.expected_days} working days logged.`
+    : 'I could not read your attendance summary right now.';
+
+  return [
+    `I am here with you. You do not have to carry the day alone.`,
+    attendanceLine,
+    workContext
+      ? `I can see your recent work pattern: ${workContext}.`
+      : 'Start with one clear task, keep it small enough to finish, and then build momentum from there.',
+    `For your message, "${message}", my practical suggestion is: pick the next 25-minute focus block, write the exact outcome you want, and share one blocker early instead of waiting until the end of the day.`,
+    `You are allowed to have a heavy day and still make meaningful progress. One clean step counts.`
+  ].join('\n\n');
+};
+
 const sendMentorMessage = async (req, res, next) => {
   try {
     const { message } = req.body;
@@ -48,22 +64,54 @@ const sendMentorMessage = async (req, res, next) => {
       `${w.title} (${w.time_spent_minutes}min) - ${w.status}`
     ).join(', ');
 
-    const systemPrompt = `You are an AI Mentor for a team member. You help them with work planning, productivity tips, and career guidance.
-Be supportive, encouraging, and practical. Keep responses concise and actionable.
-The user's recent work: ${workContext || 'No work logged yet'}`;
+    const attendanceResult = await db.query(
+      `WITH bounds AS (
+         SELECT date_trunc('month', CURRENT_DATE)::date AS start_date, CURRENT_DATE::date AS end_date
+       ),
+       working_days AS (
+         SELECT COUNT(*)::int AS expected_days
+         FROM bounds, generate_series(bounds.start_date, bounds.end_date, interval '1 day') AS days(day)
+         WHERE EXTRACT(ISODOW FROM days.day) <= 5
+       ),
+       present_days AS (
+         SELECT COUNT(DISTINCT check_in_time::date)::int AS present_days
+         FROM attendance_records, bounds
+         WHERE company_id = $1 AND user_id = $2
+           AND check_in_time::date BETWEEN bounds.start_date AND bounds.end_date
+       )
+       SELECT
+         COALESCE(present_days.present_days, 0)::int AS present_days,
+         GREATEST(working_days.expected_days, 1)::int AS expected_days,
+         ROUND((COALESCE(present_days.present_days, 0)::numeric * 100) / GREATEST(working_days.expected_days, 1), 1) AS attendance_percentage
+       FROM working_days CROSS JOIN present_days`,
+      [companyId, userId]
+    );
 
-    // Call Claude API
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 500,
-      system: systemPrompt,
-      messages: [
-        ...messages.map(m => ({ role: m.role, content: m.content })),
-        { role: 'user', content: message }
-      ]
-    });
+    const attendanceSummary = attendanceResult.rows[0];
 
-    const assistantMessage = response.content[0].text;
+    const systemPrompt = `You are Marxen Mentor inside a corporate office portal.
+You support employees and admins with planning, attendance accountability, productivity, communication, and motivation.
+The person should never feel alone. Be warm, grounded, and practical without pretending to be a therapist.
+Give answers in short sections: "What I see", "Next best step", and "Encouragement".
+If attendance or work data suggests risk, mention it gently and suggest a concrete follow-up.
+Recent work: ${workContext || 'No work logged yet'}.
+Attendance: ${attendanceSummary?.attendance_percentage || 0}% month-to-date.`;
+
+    let assistantMessage;
+    if (config.claude.apiKey) {
+      const response = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 700,
+        system: systemPrompt,
+        messages: [
+          ...messages.slice(-12).map(m => ({ role: m.role, content: m.content })),
+          { role: 'user', content: message }
+        ]
+      });
+      assistantMessage = response.content[0].text;
+    } else {
+      assistantMessage = fallbackMentorReply({ message, workContext, attendanceSummary });
+    }
 
     // Add messages to conversation history
     messages.push({ role: 'user', content: message, timestamp: new Date() });
@@ -133,17 +181,17 @@ const getWorkRecommendations = async (req, res, next) => {
       return `${cat?.name || 'Other'}: ${w.count} tasks (avg ${Math.round(w.avg_time)}min)`;
     }).join(', ');
 
-    const response = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 300,
-      messages: [{
-        role: 'user',
-        content: `Based on this work pattern: ${patterns}, suggest 3 productive work areas for today. Be specific and actionable.`
-      }]
-    });
-
     res.json({
-      recommendations: response.content[0].text,
+      recommendations: config.claude.apiKey
+        ? (await anthropic.messages.create({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 350,
+          messages: [{
+            role: 'user',
+            content: `Based on this work pattern: ${patterns || 'No work yet'}, suggest 3 productive work areas for today. Be specific, motivating, and actionable.`
+          }]
+        })).content[0].text
+        : `1. Choose one high-value task and finish the smallest useful version.\n2. Log your current work before breaks so your progress is visible.\n3. If you feel stuck, send one update to your admin early. You are part of a team, not working alone.`,
       patterns
     });
   } catch (error) {

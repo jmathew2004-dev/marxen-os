@@ -5,11 +5,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    allowedHosts: ['.loca.lt', 'localhost', '127.0.0.1'],
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
       }
     }
+  },
+  preview: {
+    allowedHosts: ['.loca.lt', 'localhost', '127.0.0.1']
   }
 })

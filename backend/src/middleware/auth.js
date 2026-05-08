@@ -18,14 +18,14 @@ const authMiddleware = (req, res, next) => {
 };
 
 const adminMiddleware = (req, res, next) => {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
+  if (!['owner', 'admin'].includes(req.user?.role)) {
+    return res.status(403).json({ error: 'Owner or admin access required' });
   }
   next();
 };
 
 const managerMiddleware = (req, res, next) => {
-  if (!['admin', 'manager'].includes(req.user?.role)) {
+  if (!['owner', 'admin', 'manager'].includes(req.user?.role)) {
     return res.status(403).json({ error: 'Manager access required' });
   }
   next();

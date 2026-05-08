@@ -7,7 +7,10 @@ const connectionString = config.database.url ||
   `postgresql://${config.database.user}:${config.database.password}@${config.database.host}:${config.database.port}/${config.database.database}`;
 
 const pool = new Pool({
-  connectionString
+  connectionString,
+  ssl: config.database.ssl
+    ? { rejectUnauthorized: config.database.sslRejectUnauthorized }
+    : undefined
 });
 
 pool.on('error', (err) => {

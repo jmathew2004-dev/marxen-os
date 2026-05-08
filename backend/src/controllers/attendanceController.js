@@ -1,5 +1,11 @@
 const { v4: uuidv4 } = require('uuid');
 const db = require('../config/database');
+const {
+  createAttendanceAlertIfNeeded,
+  getTeamAttendanceSummary,
+  getUserAttendanceSummary
+} = require('../services/attendanceInsights');
+const { employeeReportCsv, getEmployeeReport } = require('../services/reporting');
 
 const checkIn = async (req, res, next) => {
   try {
@@ -14,7 +20,14 @@ const checkIn = async (req, res, next) => {
       [uuidv4(), userId, companyId, voice_transcription || null]
     );
 
-    res.status(201).json({ message: 'Checked in', attendance: result.rows[0] });
+    const insights = await createAttendanceAlertIfNeeded(companyId, userId);
+
+    res.status(201).json({
+      message: 'Checked in',
+      attendance: result.rows[0],
+      attendance_summary: insights.summary,
+      alerts_created: insights.alerts_created
+    });
   } catch (error) {
     next(error);
   }
@@ -22,7 +35,7 @@ const checkIn = async (req, res, next) => {
 
 const checkOut = async (req, res, next) => {
   try {
-    const { notes } = req.body;
+    const { notes, follow_up } = req.body;
     const userId = req.user.id;
     const companyId = req.user.company_id;
 
@@ -51,7 +64,39 @@ const checkOut = async (req, res, next) => {
       [checkOutTime, durationMinutes, notes || null, attendanceId]
     );
 
-    res.json({ message: 'Checked out', attendance: result.rows[0] });
+    let followUpWorkItem = null;
+    if (follow_up?.title) {
+      const workResult = await db.query(
+        `INSERT INTO work_items (
+           id, company_id, user_id, title, description, time_spent_minutes,
+           priority, status, related_product
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         RETURNING *`,
+        [
+          uuidv4(),
+          companyId,
+          userId,
+          follow_up.title,
+          follow_up.description || notes || null,
+          follow_up.time_spent_minutes || durationMinutes || 0,
+          follow_up.priority || 'medium',
+          follow_up.status || 'completed',
+          follow_up.related_product || null
+        ]
+      );
+      followUpWorkItem = workResult.rows[0];
+    }
+
+    const insights = await createAttendanceAlertIfNeeded(companyId, userId);
+
+    res.json({
+      message: 'Checked out',
+      attendance: result.rows[0],
+      follow_up_work_item: followUpWorkItem,
+      attendance_summary: insights.summary,
+      alerts_created: insights.alerts_created
+    });
   } catch (error) {
     next(error);
   }
@@ -115,10 +160,48 @@ const getTeamStatus = async (req, res, next) => {
   }
 };
 
+const getMySummary = async (req, res, next) => {
+  try {
+    const summary = await getUserAttendanceSummary(req.user.company_id, req.user.id);
+    res.json({ summary });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getTeamSummary = async (req, res, next) => {
+  try {
+    const summary = await getTeamAttendanceSummary(req.user.company_id);
+    res.json(summary);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getMyReport = async (req, res, next) => {
+  try {
+    const period = req.query.period === 'month' ? 'month' : 'week';
+    const report = await getEmployeeReport(req.user.company_id, req.user.id, period);
+
+    if (req.query.format === 'csv') {
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="marxen-${period}-report.csv"`);
+      return res.send(employeeReportCsv(report));
+    }
+
+    return res.json({ report });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   checkIn,
   checkOut,
   getHistory,
   getTodayStatus,
-  getTeamStatus
+  getTeamStatus,
+  getMySummary,
+  getTeamSummary,
+  getMyReport
 };

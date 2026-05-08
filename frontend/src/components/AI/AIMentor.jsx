@@ -8,6 +8,12 @@ const AIMentor = () => {
   const [loading, setLoading] = useState(false)
   const [recommendations, setRecommendations] = useState('')
   const { t } = useTranslation()
+  const promptChips = [
+    'Plan my next power hour',
+    'I feel stuck today',
+    'Help me fix my Pulse',
+    'Write a clean admin update'
+  ]
 
   useEffect(() => {
     fetchConversationHistory()
@@ -55,15 +61,34 @@ const AIMentor = () => {
 
   return (
     <div className="ai-mentor">
-      <div className="card">
-        <h2>{t('ai_mentor')}</h2>
+      <div className="panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">Buddy Mode</p>
+            <h2>{t('ai_mentor')}</h2>
+          </div>
+          <span className="status-pill success">Always around</span>
+        </div>
 
         <div className="recommendations-box">
           <h3>{t('recommendations')}</h3>
-          <p>{recommendations}</p>
+          <p>{recommendations || 'Your AI Buddy can help with Flow planning, clean follow-ups, motivation, and getting unstuck.'}</p>
         </div>
 
-        <div className="messages-box" style={{ height: '400px', overflowY: 'auto', marginTop: '1rem', padding: '1rem', border: '1px solid var(--border)', borderRadius: '0.5rem' }}>
+        <div className="prompt-chips">
+          {promptChips.map((prompt) => (
+            <button
+              key={prompt}
+              type="button"
+              className="secondary"
+              onClick={() => setInput(prompt)}
+            >
+              {prompt}
+            </button>
+          ))}
+        </div>
+
+        <div className="messages-box">
           {messages.map((msg, idx) => (
             <div key={idx} className={`message ${msg.role}`}>
               <p><strong>{msg.role === 'user' ? 'You' : 'AI Mentor'}:</strong> {msg.content}</p>
