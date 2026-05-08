@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marxen ERP - Code Navigator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-card .emoji {
+            font-size: 1.5em;
+        }
+        
+        .file-path {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 10px 0;
+            color: #333;
+            word-break: break-all;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .file-path:hover {
+            background: #e8e8e8;
+        }
+        
+        .file-path.frontend {
+            border-left: 4px solid #61dafb;
+        }
+        
+        .file-path.backend {
+            border-left: 4px solid #68a063;
+        }
+        
+        .file-path.database {
+            border-left: 4px solid #336791;
+        }
+        
+        .description {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        
+        .tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-right: 5px;
+            margin-top: 10px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            color: white;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid rgba(255,255,255,0.3);
+        }
+        
+        .quick-links {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .quick-links h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .quick-links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .quick-link-item {
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .quick-link-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .quick-link-item code {
+            background: white;
+            padding: 5px;
+            border-radius: 3px;
+            display: block;
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #333;
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-left: 10px;
+            transition: background 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: #764ba2;
+        }
+        
+        .copied {
+            color: green;
+            font-size: 0.8em;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Marxen ERP - Code Navigator</h1>
+            <p class="subtitle">Click any feature to see where the code is located</p>
+        </header>
+        
+        <!-- Quick Links Section -->
+        <div class="quick-links">
+            <h2>⚡ Quick Search (Ctrl+F / Cmd+F in VS Code)</h2>
+            <div class="quick-links-grid">
+                <div class="quick-link-item">
+                    <strong>🤖 Search for AI code:</strong>
+                    <code>aiController</code>
+                </div>
+                <div class="quick-link-item">
+                    <strong>🔐 Search for Auth code:</strong>
+                    <code>authController</code>
+                </div>
+                <div class="quick-link-item">
+                    <strong>⏰ Search for Attendance:</strong>
+                    <code>attendanceController</code>
+                </div>
+                <div class="quick-link-item">
+                    <strong>💼 Search for Work code:</strong>
+                    <code>workController</code>
+                </div>
+                <div class="quick-link-item">
+                    <strong>👨‍💼 Search for Admin code:</strong>
+                    <code>adminController</code>
+                </div>
+                <div class="quick-link-item">
+                    <strong>🗄️ Database Schema:</strong>
+                    <code>001_init_schema.sql</code>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Frontend Features -->
+        <div class="section">
+            <h2 class="section-title">📱 Frontend Features (React Components)</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3><span class="emoji">🤖</span> AI Mentor Chat</h3>
+                    <p class="description">Chat interface with Claude AI integration</p>
+                    <div class="file-path frontend">
+                        frontend/src/components/AI/AIMentor.jsx
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Frontend</span>
+                    <span class="tag">React</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">👤</span> Login & Register</h3>
+                    <p class="description">User authentication pages</p>
+                    <div class="file-path frontend">
+                        frontend/src/components/Auth/Login.jsx
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <div class="file-path frontend">
+                        frontend/src/components/Auth/Register.jsx
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Frontend</span>
+                    <span class="tag">Auth</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">⏰</span> Check-in / Check-out</h3>
+                    <p class="description">Attendance tracking UI</p>
+                    <div class="file-path frontend">
+                        frontend/src/components/Attendance/CheckIn.jsx
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Frontend</span>
+                    <span class="tag">Attendance</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">💼</span> Work Logging</h3>
+                    <p class="description">Log and track work items</p>
+                    <div class="file-path frontend">
+                        frontend/src/components/WorkManagement/WorkLogger.jsx
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Frontend</span>
+                    <span class="tag">Work</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">👨‍💼</span> Admin Dashboard</h3>
+                    <p class="description">Team overview and management</p>
+                    <div class="file-path frontend">
+                        frontend/src/components/Dashboard/AdminDashboard.jsx
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Frontend</span>
+                    <span class="tag">Admin</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">👤</span> Employee Dashboard</h3>
+                    <p class="description">Personal dashboard and work view</p>
+                    <div class="file-path frontend">
+                        frontend/src/components/Dashboard/EmployeeDashboard.jsx
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Frontend</span>
+                    <span class="tag">Dashboard</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">🎤</span> Voice Commands</h3>
+                    <p class="description">Voice input for check-in</p>
+                    <div class="file-path frontend">
+                        frontend/src/components/Voice/VoiceInput.jsx
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Frontend</span>
+                    <span class="tag">Voice</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">🌍</span> Language Support</h3>
+                    <p class="description">Multilingual UI (English, Tamil, Telugu, Hindi)</p>
+                    <div class="file-path frontend">
+                        frontend/src/i18n/config.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Frontend</span>
+                    <span class="tag">i18n</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Backend Features -->
+        <div class="section">
+            <h2 class="section-title">🔧 Backend Logic (Node.js + Express)</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3><span class="emoji">🤖</span> AI Mentor Logic</h3>
+                    <p class="description">Claude API integration and message handling</p>
+                    <div class="file-path backend">
+                        backend/src/controllers/aiController.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <div class="file-path backend">
+                        backend/src/routes/ai.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Backend</span>
+                    <span class="tag">AI</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">🔐</span> Authentication</h3>
+                    <p class="description">User registration, login, JWT tokens</p>
+                    <div class="file-path backend">
+                        backend/src/controllers/authController.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <div class="file-path backend">
+                        backend/src/routes/auth.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <div class="file-path backend">
+                        backend/src/middleware/auth.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Backend</span>
+                    <span class="tag">Auth</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">⏰</span> Attendance Tracking</h3>
+                    <p class="description">Check-in, check-out, duration calculation</p>
+                    <div class="file-path backend">
+                        backend/src/controllers/attendanceController.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <div class="file-path backend">
+                        backend/src/routes/attendance.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Backend</span>
+                    <span class="tag">Attendance</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">💼</span> Work Management</h3>
+                    <p class="description">Work item CRUD, categorization, time tracking</p>
+                    <div class="file-path backend">
+                        backend/src/controllers/workController.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <div class="file-path backend">
+                        backend/src/routes/work.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Backend</span>
+                    <span class="tag">Work</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">👨‍💼</span> Admin Operations</h3>
+                    <p class="description">Company setup, team management, user roles</p>
+                    <div class="file-path backend">
+                        backend/src/controllers/adminController.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <div class="file-path backend">
+                        backend/src/routes/admin.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Backend</span>
+                    <span class="tag">Admin</span>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><span class="emoji">⚙️</span> Configuration</h3>
+                    <p class="description">Database setup, environment config</p>
+                    <div class="file-path backend">
+                        backend/src/config/database.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <div class="file-path backend">
+                        backend/src/config/env.js
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Backend</span>
+                    <span class="tag">Config</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Database -->
+        <div class="section">
+            <h2 class="section-title">🗄️ Database Schema</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3><span class="emoji">📊</span> All Database Tables</h3>
+                    <p class="description">7 tables: companies, users, work_categories, work_items, attendance_records, ai_conversations, audit_logs</p>
+                    <div class="file-path database">
+                        backend/migrations/001_init_schema.sql
+                        <button class="copy-btn" onclick="copyToClipboard(this)">📋 Copy</button>
+                    </div>
+                    <span class="tag">Database</span>
+                    <span class="tag">PostgreSQL</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- How to Use -->
+        <div class="section">
+            <h2 class="section-title">🎯 How to Use This</h2>
+            <div class="quick-links">
+                <ol style="color: #333; line-height: 2;">
+                    <li><strong>Click a file path</strong> above to copy it</li>
+                    <li><strong>Open VS Code</strong> (should already be open)</li>
+                    <li><strong>Use Ctrl+P</strong> (or Cmd+P) to open file quick search</li>
+                    <li><strong>Paste the file path</strong> and press Enter</li>
+                    <li><strong>File opens!</strong> Now show your team the code</li>
+                </ol>
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">
+                <p><strong>OR simply expand the file explorer on the left in VS Code and navigate to the file paths shown above!</strong></p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>📚 Marxen ERP - Complete code navigator | Share this with your team!</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">See CODE_NAVIGATION.md for detailed documentation</p>
+        </footer>
+    </div>
+    
+    <script>
+        function copyToClipboard(button) {
+            const filePath = button.parentElement.textContent.trim().replace('📋 Copy', '').trim();
+            navigator.clipboard.writeText(filePath).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '✓ Copied!';
+                button.style.background = '#28a745';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

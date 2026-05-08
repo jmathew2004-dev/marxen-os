@@ -1,0 +1,269 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                    MARXEN ERP - CODE QUICK LINKS                          ║
+║                                                                             ║
+║           🔗 Click Feature → See Code in VS Code Explorer                 ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+
+📱 FRONTEND FEATURES → CLICK IN VS CODE EXPLORER
+═══════════════════════════════════════════════════════════════════════════
+
+🤖 AI MENTOR CHAT
+   frontend/src/components/AI/AIMentor.jsx
+   └─ Shows: Chat interface, message handling, AI integration
+
+👤 LOGIN / REGISTER  
+   frontend/src/components/Auth/Login.jsx
+   frontend/src/components/Auth/Register.jsx
+   └─ Shows: Form validation, user authentication
+
+⏰ CHECK-IN / CHECK-OUT
+   frontend/src/components/Attendance/CheckIn.jsx
+   └─ Shows: Time tracking, attendance logging
+
+💼 WORK LOGGING
+   frontend/src/components/WorkManagement/WorkLogger.jsx
+   └─ Shows: Work item creation, category selection, time entry
+
+👨‍💼 ADMIN DASHBOARD
+   frontend/src/components/Dashboard/AdminDashboard.jsx
+   └─ Shows: Team overview, attendance reports, team management
+
+👤 EMPLOYEE DASHBOARD
+   frontend/src/components/Dashboard/EmployeeDashboard.jsx
+   └─ Shows: Personal dashboard, work items, AI Mentor
+
+🎤 VOICE COMMANDS
+   frontend/src/components/Voice/VoiceInput.jsx
+   └─ Shows: Voice input capture, speech-to-text
+
+🌍 LANGUAGE SWITCHER
+   frontend/src/components/Common/LanguageSwitcher.jsx
+   └─ Shows: Multi-language support (English, Tamil, Telugu, Hindi)
+
+📍 NAVIGATION BAR
+   frontend/src/components/Common/Navigation.jsx
+   └─ Shows: Top navigation, user menu
+
+
+🔧 BACKEND LOGIC → CLICK IN VS CODE EXPLORER
+═══════════════════════════════════════════════════════════════════════════
+
+🤖 AI MENTOR BACKEND
+   backend/src/controllers/aiController.js
+   backend/src/routes/ai.js
+   └─ Handles: Claude API integration, message processing
+
+🔐 AUTHENTICATION BACKEND
+   backend/src/controllers/authController.js
+   backend/src/routes/auth.js
+   backend/src/middleware/auth.js
+   └─ Handles: User registration, login, JWT tokens
+
+⏰ ATTENDANCE BACKEND
+   backend/src/controllers/attendanceController.js
+   backend/src/routes/attendance.js
+   └─ Handles: Check-in/out records, duration calculation
+
+💼 WORK BACKEND
+   backend/src/controllers/workController.js
+   backend/src/routes/work.js
+   └─ Handles: Work item CRUD, categorization, time tracking
+
+👨‍💼 ADMIN BACKEND
+   backend/src/controllers/adminController.js
+   backend/src/routes/admin.js
+   └─ Handles: Company setup, team management, user roles
+
+
+📊 DATABASE SCHEMA → CLICK IN VS CODE EXPLORER
+═══════════════════════════════════════════════════════════════════════════
+
+🗄️ ALL TABLES DEFINED IN:
+   backend/migrations/001_init_schema.sql
+   
+   Tables:
+   - companies          (Company profiles)
+   - users              (User accounts)
+   - work_categories    (Work types)
+   - work_items         (Work logs)
+   - attendance_records (Check-in records)
+   - ai_conversations   (Chat history)
+   - audit_logs         (Audit trail)
+
+
+⚙️ CONFIGURATION & SETUP
+═══════════════════════════════════════════════════════════════════════════
+
+🔧 BACKEND SETUP
+   backend/src/config/database.js      → Database connection
+   backend/src/config/env.js           → Environment variables
+   backend/src/app.js                  → Express configuration
+   backend/src/middleware/errorHandler.js → Error handling
+
+🎨 FRONTEND SETUP
+   frontend/src/main.jsx               → App entry point
+   frontend/src/App.jsx                → Routing
+   frontend/src/context/AuthContext.jsx → State management
+   frontend/src/services/api.js        → API client
+
+🌐 INTERNATIONALIZATION
+   frontend/src/i18n/config.js         → i18n setup
+   frontend/src/i18n/locales/*.json    → Translation files
+
+
+🚀 DEPLOYMENT FILES
+═══════════════════════════════════════════════════════════════════════════
+
+🐳 DOCKER
+   backend/Dockerfile          → Backend container image
+   frontend/Dockerfile         → Frontend container image
+   docker-compose.yml          → Multi-service setup
+
+📜 SCRIPTS
+   deploy.sh                   → Deployment automation
+   Makefile                    → Convenient commands
+
+📋 DOCUMENTATION
+   CODE_NAVIGATION.md          → This detailed guide
+   DEPLOY_NOW.md              → Deployment instructions
+   QUICK_REFERENCE.md         → API endpoints
+   ARCHITECTURE.md            → System design
+
+
+═══════════════════════════════════════════════════════════════════════════
+🎯 HOW TO SHOW CODE TO YOUR TEAM
+═══════════════════════════════════════════════════════════════════════════
+
+STEP 1: Open VS Code
+   → Already open! ✓
+
+STEP 2: Click Feature from List Above
+   Example: "🤖 AI MENTOR CHAT"
+   → Click: frontend/src/components/AI/AIMentor.jsx
+
+STEP 3: File Opens in Editor
+   → Now you can show the code to your team!
+
+STEP 4: Open Backend Side-by-Side (Optional)
+   → Press Ctrl+\ (or Cmd+\)
+   → Open backend/src/controllers/aiController.js
+   → Show both frontend & backend together!
+
+STEP 5: Explain the Code
+   → Walk through the logic
+   → Show how frontend calls backend
+   → Show API responses
+
+
+═══════════════════════════════════════════════════════════════════════════
+💡 PRO TIPS FOR TEAM PRESENTATIONS
+═══════════════════════════════════════════════════════════════════════════
+
+TIP 1: Use Presentation Mode
+   Press: Ctrl+K Ctrl+P (or Cmd+K Cmd+P)
+   → VS Code enters presentation mode
+   → Code is larger and easier to read
+   → Perfect for showing to team!
+
+TIP 2: Split Screen Comparison
+   Press: Ctrl+\ (or Cmd+\)
+   → Open file on left
+   → Open related file on right
+   → Compare frontend & backend side-by-side!
+
+TIP 3: Search for Functions
+   Press: Ctrl+F (or Cmd+F)
+   → Type function name
+   → Jump to relevant code
+   → Show team how it works!
+
+TIP 4: Go to Definition
+   Press: Ctrl+Click (or Cmd+Click)
+   → Click on function/variable
+   → Jump to where it's defined
+   → Follow the code flow!
+
+TIP 5: Use Extensions
+   Install: REST Client
+   → Test API endpoints directly in VS Code
+   → Show team real API responses!
+
+
+═══════════════════════════════════════════════════════════════════════════
+🔍 QUICK SEARCH IN VS CODE
+═══════════════════════════════════════════════════════════════════════════
+
+Press Ctrl+Shift+F (or Cmd+Shift+F) to search all files:
+
+Search for:           Finds:
+─────────────────────────────────────────────────────────────────────────
+"aiController"        → AI Mentor implementation
+"authController"      → Authentication logic
+"attendanceController"→ Attendance tracking
+"workController"      → Work management
+"adminController"     → Admin operations
+
+"AIMentor.jsx"        → AI chat UI
+"CheckIn.jsx"         → Attendance UI
+"WorkLogger.jsx"      → Work logging UI
+"Login.jsx"           → Authentication UI
+
+"001_init_schema"     → Database schema
+
+
+═══════════════════════════════════════════════════════════════════════════
+📞 CODE FEATURE MAPPING
+═══════════════════════════════════════════════════════════════════════════
+
+FEATURE                 FRONTEND CODE              BACKEND CODE
+──────────────────────────────────────────────────────────────────────────
+Chat with AI Mentor     AI/AIMentor.jsx           aiController.js
+User Login              Auth/Login.jsx            authController.js
+Check-in/Check-out      Attendance/CheckIn.jsx    attendanceController.js
+Log Work Items          WorkManagement/WorkLogger workController.js
+Admin Dashboard         Dashboard/AdminDashboard  adminController.js
+Employee Dashboard      Dashboard/EmployeeDashboard (mixed)
+Team Management         Admin/*                   adminController.js
+Voice Commands          Voice/VoiceInput.jsx      attendanceController.js
+Language Support        LanguageSwitcher.jsx      (frontend only)
+Authentication         Auth/Login.jsx             middleware/auth.js
+
+
+═══════════════════════════════════════════════════════════════════════════
+📚 DOCUMENTATION LOCATIONS
+═══════════════════════════════════════════════════════════════════════════
+
+FILE                          WHAT IT CONTAINS
+─────────────────────────────────────────────────────────────────────────
+CODE_NAVIGATION.md            ← Detailed navigation guide (THIS!)
+CODE_QUICK_LINKS.txt          ← Quick reference (you are here!)
+QUICK_REFERENCE.md            ← API endpoints & commands
+ARCHITECTURE.md               ← System design & data flow
+DEPLOY_NOW.md                 ← How to deploy to production
+INDEX.md                      ← Documentation roadmap
+
+
+═══════════════════════════════════════════════════════════════════════════
+✨ NOW YOU CAN:
+═══════════════════════════════════════════════════════════════════════════
+
+✓ Navigate code by feature name
+✓ Show team exactly where code is located
+✓ View frontend & backend together
+✓ Explain system architecture
+✓ Share API implementation details
+✓ Point team members to specific files
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+READY TO SHOW YOUR TEAM THE CODE? 🎯
+
+1. Pick a feature from the list above
+2. Click the file path in VS Code Explorer
+3. Show the code to your team
+4. Explain how it works
+5. Profit! 💰
+
+═══════════════════════════════════════════════════════════════════════════
