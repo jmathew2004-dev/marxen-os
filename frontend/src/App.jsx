@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AuthContext, AuthProvider } from './context/AuthContext'
+import { AuthContext, AuthProvider } from './context/AuthContext.jsx'
 import Login from './components/Auth/Login'
 import EmployeeDashboard from './components/Dashboard/EmployeeDashboard'
 import AdminDashboard from './components/Dashboard/AdminDashboard'

@@ -27,7 +27,7 @@ const query = (text, params) => {
 const migrate = async () => {
   const client = await pool.connect();
   try {
-    const migrationFile = path.join(__dirname, '../migrations/001_init_schema.sql');
+    const migrationFile = path.join(__dirname, '../../migrations/001_init_schema.sql');
     const sql = fs.readFileSync(migrationFile, 'utf8');
     await client.query(sql);
     console.log('Database migration completed');

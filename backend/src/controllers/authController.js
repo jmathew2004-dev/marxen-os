@@ -14,7 +14,7 @@ const generateToken = (user) => {
 
 const register = async (req, res, next) => {
   try {
-    const { email, password, first_name, last_name, company_id, role } = req.body;
+    const { email, password, first_name, last_name, company_id, company_name, role } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
@@ -22,12 +22,24 @@ const register = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const userId = uuidv4();
+    let finalCompanyId = company_id;
+
+    // If no company_id provided, create a new company (for first admin setup)
+    if (!finalCompanyId) {
+      const companyResult = await db.query(
+        `INSERT INTO companies (id, name, description)
+         VALUES ($1, $2, $3)
+         RETURNING id`,
+        [uuidv4(), company_name || `${first_name} ${last_name}'s Company`, null]
+      );
+      finalCompanyId = companyResult.rows[0].id;
+    }
 
     const result = await db.query(
       `INSERT INTO users (id, email, password_hash, first_name, last_name, company_id, role)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, email, first_name, last_name, role, company_id`,
-      [userId, email, hashedPassword, first_name, last_name, company_id, role || 'employee']
+      [userId, email, hashedPassword, first_name, last_name, finalCompanyId, role || 'employee']
     );
 
     const user = result.rows[0];
