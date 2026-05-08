@@ -9,6 +9,7 @@ const AdminDashboard = () => {
   const [teamMembers, setTeamMembers] = useState([])
   const [teamSummary, setTeamSummary] = useState({ metrics: {}, team: [], threshold: 75 })
   const [newMember, setNewMember] = useState({ email: '', first_name: '', last_name: '', role: 'employee' })
+  const [newCredential, setNewCredential] = useState(null)
   const [whitelist, setWhitelist] = useState([])
   const [newWhitelist, setNewWhitelist] = useState({
     email: '',
@@ -83,11 +84,15 @@ const AdminDashboard = () => {
     e.preventDefault()
     setLoading(true)
     try {
-      await api.post('/admin/users', newMember)
-      setMessage('Team member added')
+      const res = await api.post('/admin/users', newMember)
+      setMessage(`${res.data.user.role === 'owner' ? 'Owner' : 'Team member'} account added`)
+      setNewCredential({
+        email: res.data.user.email,
+        role: res.data.user.role,
+        password: res.data.temporary_password
+      })
       setNewMember({ email: '', first_name: '', last_name: '', role: 'employee' })
       fetchTeamMembers()
-      setTimeout(() => setMessage(''), 2000)
     } catch (error) {
       setMessage(error.response?.data?.error || t('error'))
     } finally {
@@ -365,11 +370,30 @@ const AdminDashboard = () => {
               <option value="employee">Employee</option>
               <option value="manager">Manager</option>
               <option value="admin">Admin</option>
+              <option value="owner">Owner</option>
             </select>
             <button type="submit" className="primary mt-2" disabled={loading}>
               {loading ? t('loading') : t('add_member')}
             </button>
           </form>
+
+          {newCredential && (
+            <div className="credential-card mt-4">
+              <div>
+                <p className="eyebrow">New Login</p>
+                <h3>{newCredential.role === 'owner' ? 'Owner account ready' : 'Account ready'}</h3>
+                <p><strong>Email:</strong> {newCredential.email}</p>
+                <p><strong>Password:</strong> <code>{newCredential.password}</code></p>
+              </div>
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => navigator.clipboard?.writeText(`Email: ${newCredential.email}\nPassword: ${newCredential.password}`)}
+              >
+                Copy Login
+              </button>
+            </div>
+          )}
 
           <div className="panel mt-4">
             <h2>{t('team_members')}</h2>

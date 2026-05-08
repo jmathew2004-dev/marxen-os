@@ -36,6 +36,7 @@ const migrate = async () => {
     console.log('Database migration completed');
   } catch (error) {
     console.error('Migration error:', error);
+    throw error;
   } finally {
     client.release();
   }

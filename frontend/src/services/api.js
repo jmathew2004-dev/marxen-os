@@ -1,7 +1,11 @@
 import axios from 'axios'
 
+const defaultApiBaseUrl = import.meta.env.PROD
+  ? 'https://api.osmarxen.com/api'
+  : 'http://localhost:5001/api'
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || defaultApiBaseUrl,
   timeout: 12000,
   headers: {
     'Content-Type': 'application/json',
@@ -21,7 +25,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthRequest = String(error.config?.url || '').includes('/auth/')
+    if (error.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       window.location.href = '/login'
@@ -30,6 +35,13 @@ api.interceptors.response.use(
       error.response = {
         data: {
           error: 'The server took too long to respond. Please try again.'
+        }
+      }
+    }
+    if (!error.response) {
+      error.response = {
+        data: {
+          error: `Cannot reach Marxen API at ${api.defaults.baseURL}. Please start the backend and try again.`
         }
       }
     }

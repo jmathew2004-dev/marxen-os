@@ -41,6 +41,9 @@ GLOBAL_RATE_LIMIT_MAX=300
 AUTH_RATE_LIMIT_MAX=10
 AI_RATE_LIMIT_MAX=30
 CLAUDE_API_KEY=<optional live AI key>
+CLAUDE_MODEL=claude-sonnet-4-5
+CLAUDE_MAX_TOKENS=900
+CLAUDE_TEMPERATURE=0.7
 ```
 
 After deploy, run the database migration on the backend host:

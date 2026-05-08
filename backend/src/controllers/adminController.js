@@ -4,8 +4,33 @@ const db = require('../config/database');
 const { adminAttendanceCsv, adminWorkCsv } = require('../services/reporting');
 
 const WORKER_ROLES = ['employee', 'manager'];
+const TEAM_ROLES = ['employee', 'manager', 'admin', 'owner'];
 
 const normalizeEmail = (email) => String(email || '').trim().toLowerCase();
+
+const validateTeamRole = (role, currentUserRole) => {
+  const requestedRole = role || 'employee';
+
+  if (!TEAM_ROLES.includes(requestedRole)) {
+    return { error: 'Role must be employee, manager, admin, or owner' };
+  }
+
+  if (requestedRole === 'owner' && currentUserRole !== 'owner') {
+    return { error: 'Only an owner can create or promote another owner' };
+  }
+
+  return { role: requestedRole };
+};
+
+const activeOwnerCount = async (companyId) => {
+  const result = await db.query(
+    `SELECT COUNT(*)::int AS count
+     FROM users
+     WHERE company_id = $1 AND role = 'owner' AND is_active = true`,
+    [companyId]
+  );
+  return result.rows[0]?.count || 0;
+};
 
 const setupCompany = async (req, res, next) => {
   try {
@@ -65,6 +90,11 @@ const addTeamMember = async (req, res, next) => {
       return res.status(400).json({ error: 'Email required' });
     }
 
+    const roleResult = validateTeamRole(role, req.user.role);
+    if (roleResult.error) {
+      return res.status(403).json({ error: roleResult.error });
+    }
+
     // Generate a temporary password (should be changed by user on first login)
     const tempPassword = uuidv4().substring(0, 12);
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
@@ -74,7 +104,17 @@ const addTeamMember = async (req, res, next) => {
       `INSERT INTO users (id, company_id, email, password_hash, first_name, last_name, role, department, designation)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id, email, first_name, last_name, role`,
-      [userId, companyId, email, hashedPassword, first_name || null, last_name || null, role || 'employee', department || null, designation || null]
+      [
+        userId,
+        companyId,
+        email,
+        hashedPassword,
+        first_name || null,
+        last_name || null,
+        roleResult.role,
+        department || null,
+        designation || null
+      ]
     );
 
     res.status(201).json({
@@ -239,6 +279,32 @@ const updateTeamMember = async (req, res, next) => {
     const { first_name, last_name, role, department, designation, is_active } = req.body;
     const companyId = req.user.company_id;
 
+    if (role) {
+      const roleResult = validateTeamRole(role, req.user.role);
+      if (roleResult.error) {
+        return res.status(403).json({ error: roleResult.error });
+      }
+    }
+
+    const existingUser = await db.query(
+      'SELECT id, role, is_active FROM users WHERE id = $1 AND company_id = $2',
+      [id, companyId]
+    );
+
+    if (!existingUser.rows.length) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const targetUser = existingUser.rows[0];
+    const wouldRemoveOwnerAccess = targetUser.role === 'owner' && (
+      (role && role !== 'owner') ||
+      is_active === false
+    );
+
+    if (wouldRemoveOwnerAccess && await activeOwnerCount(companyId) <= 1) {
+      return res.status(400).json({ error: 'At least one active owner account is required' });
+    }
+
     const result = await db.query(
       `UPDATE users
        SET first_name = COALESCE($1, first_name),
@@ -267,6 +333,23 @@ const removeTeamMember = async (req, res, next) => {
   try {
     const { id } = req.params;
     const companyId = req.user.company_id;
+
+    if (id === req.user.id) {
+      return res.status(400).json({ error: 'You cannot remove your own account' });
+    }
+
+    const existingUser = await db.query(
+      'SELECT id, role FROM users WHERE id = $1 AND company_id = $2',
+      [id, companyId]
+    );
+
+    if (!existingUser.rows.length) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (existingUser.rows[0].role === 'owner' && await activeOwnerCount(companyId) <= 1) {
+      return res.status(400).json({ error: 'At least one active owner account is required' });
+    }
 
     const result = await db.query(
       `DELETE FROM users WHERE id = $1 AND company_id = $2 RETURNING id`,

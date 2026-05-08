@@ -10,6 +10,12 @@ const numberFromEnv = (value, fallback) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
+const rangedNumberFromEnv = (value, fallback, min, max) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(parsed, min), max);
+};
+
 const booleanFromEnv = (value, fallback = false) => {
   if (value === undefined) return fallback;
   return value === 'true';
@@ -54,7 +60,10 @@ const config = {
   },
 
   claude: {
-    apiKey: process.env.CLAUDE_API_KEY
+    apiKey: process.env.CLAUDE_API_KEY,
+    model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-5',
+    maxTokens: numberFromEnv(process.env.CLAUDE_MAX_TOKENS, 900),
+    temperature: rangedNumberFromEnv(process.env.CLAUDE_TEMPERATURE, 0.7, 0, 1)
   },
 
   frontend: {
